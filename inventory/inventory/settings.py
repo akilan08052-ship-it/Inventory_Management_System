@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'api',
+    'rest_framework_simplejwt.token_blacklist'
 ]
 
 MIDDLEWARE = [
@@ -78,7 +79,7 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'inventory',
+        'NAME': 'inventorydb',
         'USER':'postgres',
         'PASSWORD':'akilandb0805',
         'HOST':'localhost',
@@ -127,11 +128,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTH_USER_MODEL='api.CustomUser'
+AUTH_USER_MODEL='api.CUSTOMUSER'
 REST_FRAMEWORK={
-    'DEFAULT_AUTHENTICATION_CLASSES':{
+    'DEFAULT_AUTHENTICATION_CLASSES':(
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    }
+    )
 }
 SIMPLE_JWT={
     "ACCESS_TOKEN_LIFETIME":timedelta(hours=1),

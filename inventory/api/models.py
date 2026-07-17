@@ -12,9 +12,11 @@ class CustomUserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
         return user
+    
+
     def create_superuser(self,email,password=None,**extra_fields):
-        extra_fields.setdefault("is_staff",True)
-        extra_fields.setdefault("is_active",True)
+        extra_fields.setdefault('is_staff',True)
+        extra_fields.setdefault('is_superuser',True)
 
         return self.create_user(email,password,**extra_fields)
 
@@ -33,6 +35,8 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     phone_no=models.IntegerField(null=True)
     date_of_birth=models.DateField(null=True)
     role=models.CharField(max_length=100,choices=role_choice)
+    is_staff=models.BooleanField(default=False)
+    is_active=models.BooleanField(default=True)
 
     def user_name(self):
         return self.first_name +" "+ self.last_name
@@ -42,14 +46,61 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     USERNAME_FIELD="email"
     REQUIRED_FIELDS=[]
 
+class Supplier(models.Model):
+    user=models.OneToOneField(CustomUser,on_delete=models.PROTECT)
+    company_name=models.CharField(max_length=200)
+    gst_number=models.CharField(max_length=30)
+    city=models.CharField(max_length=90)
+    state=models.CharField(max_length=90)
+
+    cerated_at=models.DateField(auto_now_add=True)
+
+
+class Catogery(models.Model):
+    category_choice=(
+        ("Groceries","groceries"),
+        ("Snacks","snacks"),
+        ("Household","household")
+    )
+    name=models.CharField(max_length=100,null=False,choices=category_choice)
+    description=models.TextField(max_length=200,null=True)
+class Unit(models.Model):
+    unit_choice=(
+        ("KG","Kg",),
+        ("L","l",),
+        ("PK","pk"),
+
+    )
+
+    name=models.CharField(max_length=100)
+    symbol=models.CharField(max_length=10,choices=unit_choice)
+
 
 
 
 class Product(models.Model):
-    name=models.CharField(max_length=150,null=False)
-    product_id=models.IntegerField(unique=True,null=True)
-    catogery=models.CharField(null=False)
-    stock=models.IntegerField(null=False)
-    creation_date=models.DateField(auto_now_add=True)
+    catogery=models.ForeignKey(Catogery,on_delete=models.PROTECT)
+    supplier=models.ForeignKey(Supplier,on_delete=models.PROTECT)
+    unit=models.ForeignKey(Unit,on_delete=models.PROTECT)
+    name=models.CharField(max_length=100)
+    stock=models.IntegerField()
+    selling_price=models.IntegerField()
+    purchase_price=models.IntegerField()
+    created_at=models.DateField(auto_now_add=True)
+
+
+class Purchase(models.Model):
+    supplier=models.ForeignKey(Supplier,on_delete=models.PROTECT)
+    date=models.DateField(auto_now_add=True)
+    product=models.ForeignKey(Product,on_delete=models.PROTECT)
+    unit=models.ForeignKey(Unit,on_delete=models.PROTECT)
+    stock=models.IntegerField()
+    created_at=models.DateField(auto_now_add=True)
+
+
+
+    
+
+
 
 
