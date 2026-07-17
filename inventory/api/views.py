@@ -60,6 +60,70 @@ def logout(request):
         token=RefreshToken(refresh)
         token.blacklist()
         return Response({"message":"logout success"},status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+@api_view(['POST'])
+def register_supplier(request):
+    if request.method=='POST':
+        serializer=SupplierRegisterSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"Supplier registerd Successfully"},status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['GET'])
+def view_supplier(request):
+    if request.method=='GET':
+        supplier=Supplier.objects.values("user_name","email")
+        return Response(supplier,status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+@api_view(['POST'])
+def add_catogery(request):
+    if request.method=='POST':
+        serializer=CatogerySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"added Success"},status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+@api_view(['POST'])
+def add_unit(request):
+    if request.method=='POST':
+        serializer=UnitSeralizer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"Unit Added"},status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+@api_view(['POST'])
+def add_product(request):
+    if request.method=='POST':
+        serializer=ProductSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"product add successfully"},status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.data,status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+@api_view(['POST'])
+def register_purchase(request):
+    if request.method=='POST':
+        serializer=PurschaseSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"Purchased Succesfully"})
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+                     
 
 
 

@@ -19,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 class SupplierRegisterSerializer(serializers.ModelSerializer):
     company_name=serializers.CharField()
     gst_number=serializers.CharField()
-    address=serializers.CharField()
+    
     city=serializers.CharField()
     state=serializers.CharField()
     
@@ -31,19 +31,21 @@ class SupplierRegisterSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
+            "user_name",
             "phone_no",
-            "password"
+            "password",
             "date_of_birth",
             "company_name",
-            "get_number",
-            "address",
+            "gst_number",
             "city",
-            "state"
+            "state",
+            
         ]
+    
     def create(self,validated_data):
         company_name=validated_data.pop("company_name")
         gst_number=validated_data.pop("gst_number")
-        address=validated_data.pop("address")
+        
         city=validated_data.pop("city")
         state=validated_data.pop("state")
 
@@ -57,8 +59,26 @@ class SupplierRegisterSerializer(serializers.ModelSerializer):
             user=user,
             company_name=company_name,
             gst_number=gst_number,
-            address=address,
             city=city,
             state=state
         )
         return user
+
+class UnitSeralizer(serializers.ModelSerializer):
+    class Meta:
+        model=Unit
+        fields="__all__"
+
+class CatogerySerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Catogery
+        fields="__all__"
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Product
+        fields="__all__"
+
+class   PurschaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Purchase
+        fields="__all__"

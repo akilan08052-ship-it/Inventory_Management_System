@@ -78,16 +78,5 @@ class Migration(migrations.Migration):
                 ('unit', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='api.unit')),
             ],
         ),
-        migrations.CreateModel(
-            name='Purchase',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField(auto_now_add=True)),
-                ('stock', models.IntegerField()),
-                ('created_at', models.DateField(auto_now_add=True)),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='api.product')),
-                ('supplier', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='api.supplier')),
-                ('unit', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='api.unit')),
-            ],
-        ),
+       
     ]

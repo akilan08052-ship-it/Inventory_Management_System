@@ -54,7 +54,11 @@ class Supplier(models.Model):
     state=models.CharField(max_length=90)
 
     cerated_at=models.DateField(auto_now_add=True)
-
+    
+    def supplier_name(self):
+        return self.user.first_name +" " +self.user.last_name
+    def __str__(self):
+        return self.user.user_name()
 
 class Catogery(models.Model):
     category_choice=(
@@ -64,6 +68,9 @@ class Catogery(models.Model):
     )
     name=models.CharField(max_length=100,null=False,choices=category_choice)
     description=models.TextField(max_length=200,null=True)
+
+    def __str__(self):
+        return  self.name
 class Unit(models.Model):
     unit_choice=(
         ("KG","Kg",),
@@ -73,8 +80,10 @@ class Unit(models.Model):
     )
 
     name=models.CharField(max_length=100)
-    symbol=models.CharField(max_length=10,choices=unit_choice)
-
+    symbol=models.CharField(max_length=10,choices=unit_choice,unique=True)
+   
+    def __str__(self):
+        return self.name
 
 
 
@@ -89,13 +98,31 @@ class Product(models.Model):
     created_at=models.DateField(auto_now_add=True)
 
 
+    def __str__(self):
+        return self.name
+
+
 class Purchase(models.Model):
     supplier=models.ForeignKey(Supplier,on_delete=models.PROTECT)
     date=models.DateField(auto_now_add=True)
     product=models.ForeignKey(Product,on_delete=models.PROTECT)
     unit=models.ForeignKey(Unit,on_delete=models.PROTECT)
-    stock=models.IntegerField()
+    stock=models.DecimalField(decimal_places=2,max_digits=4)
+    price=models.DecimalField(decimal_places=2,max_digits=7)
     created_at=models.DateField(auto_now_add=True)
+
+
+    def save(self,*args,**kwargs):
+        if self.supplier:
+             self.product.stock+=self.stock
+             self.product.save()
+
+        super().save(*args,**kwargs)
+    
+
+    
+    def __str__(self):
+        return self.product.name
 
 
 
