@@ -63,7 +63,10 @@ class SupplierRegisterSerializer(serializers.ModelSerializer):
             state=state
         )
         return user
-
+class Supplierserializer(serializers.ModelSerializer):
+    class Meta:
+        model=Supplier
+        fields=["id","supplier_name","email","user","company_name","dob","phone_number"]
 class UnitSeralizer(serializers.ModelSerializer):
     class Meta:
         model=Unit

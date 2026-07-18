@@ -76,8 +76,11 @@ def register_supplier(request):
 @api_view(['GET'])
 def view_supplier(request):
     if request.method=='GET':
-        supplier=Supplier.objects.values("user_name","email")
-        return Response(supplier,status=status.HTTP_200_OK)
+        supplier=Supplier.objects.all()
+        serializer=Supplierserializer(supplier,many=True)
+        
+        return Response(serializer.data,status=status.HTTP_200_OK)
+        
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 @api_view(['POST'])
 def add_catogery(request):

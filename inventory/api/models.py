@@ -57,8 +57,14 @@ class Supplier(models.Model):
     
     def supplier_name(self):
         return self.user.first_name +" " +self.user.last_name
+    def email(self):
+        return self.user.email
     def __str__(self):
         return self.user.user_name()
+    def dob(self):
+        return self.user.date_of_birth
+    def phone_number(self):
+        return self.user.phone_no
 
 class Catogery(models.Model):
     category_choice=(
