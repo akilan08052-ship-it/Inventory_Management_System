@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view,permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -12,118 +12,136 @@ from .serializers import *
 from .models import *
 
 # Create your views here.
+#admin_view
 @api_view(['POST'])
-def register(request):
+def login(request):
+    if request.method=='POST':
+        email=request.data.get("email")
+        password=request.data.get("password")
+        print(password)
+
+        user_exist=CustomUser.objects.filter(email=email).exists()
+        print(user_exist)
+        if user_exist:
+            user=authenticate(email=email,password=password)
+            print(user)
+            refresh=RefreshToken.for_user(user)
+            message={
+                
+                "email":email,
+                "access_token":str(refresh.access_token),
+                "refresh_token":str(refresh)
+
+            }
+            return Response(message,status=status.HTTP_200_OK)
+        else:
+            return Response({"message":"user not found"},status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated,IsAdminUser])
+def register_user(request):
+    if request.method=='POST':
+        serializer=UserSerializer(data=request.data)
+        print(serializer)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"User Created Successfully"},status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['POST','GET'])
+@permission_classes([IsAdminUser,IsAuthenticated])
+def add_supplier(request):
+    if request.method=='GET':
+        user=CustomUser.objects.filter(is_staff=False).values("id","email")
+        return Response(user,status=status.HTTP_200_OK)
+    
+    elif request.method=='POST':
+        serializer=SupplierSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "message":"User is now Supplier"
+                },
+                status=status.HTTP_201_CREATED
+            )
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+@api_view(['PATCH','GET'])
+@permission_classes([IsAdminUser,IsAuthenticated])
+def update_Supplier(request,pk):
+    if request.method=='PATCH':
+        try:
+            supplier=Supplier.objects.get(pk=pk)
+        except Supplier.DoesNotExist:
+            return Response({
+                "message":"Supplier not found"
+            },status=status.HTTP_404_NOT_FOUND)
+        serializer=SupplierSerializer(supplier,data=request.data,partial=True)
+        print(serializer)
+        if serializer.is_valid():
+            serializer.save()
+            
+            
+            return Response({"message":"Updated  Successfully"},status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    elif request.method=='GET':
+        supplier=Supplier.objects.all().values("id","user")
+        return Response(supplier,status=status.HTTP_200_OK)
+    
+
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+@api_view(['DELETE'])
+def delete_supplier(request,pk):
+    if request.method=='DELETE':
+        try:
+            supplier=Supplier.objects.get(pk=pk)
+        except Supplier.DoesNotExist:
+            return Response({"message":"supplier not found"},status=status.HTTP_204_NO_CONTENT)
+        supplier.delete()
+        return Response({"message":"supplier deleted"})
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+#Register Staff and Manager
+@api_view(['POST','GET'])
+@permission_classes([IsAuthenticated,IsAdminUser])
+def register_manager(request):
     if request.method=='POST':
         serializer=UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({
-                'message':'Account Created'
-
-            },status=status.HTTP_201_CREATED)
+            return Response({"message":"staff added successfully"}) 
         else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors,status=status.HTTP_201_CREATED)
+    elif request.method=='GET':
+        user=CustomUser.objects.filter(is_staff=True).values("id","email")
+        return Response(user,status=status.HTTP_200_OK)
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-@api_view(['POST'])
-def user_in(request):
-    if request.method=='POST':
-        
-        
-        email=request.data.get("email")
-        password=request.data.get("password")
-        print(password)
-        
-        email_exist=CustomUser.objects.filter(email=email).exists()
-        if email_exist:
-            user=authenticate(request,email=email,password=password)
-            print(user)
-            if user is None:
-                return Response({"message":"password incorrect"})
-            refresh=RefreshToken.for_user(user)
-            return Response(
-                {"message":"login succesfully",
-                 "access":str(refresh.access_token),
-                 "refresh":str(refresh)
-                },status=status.HTTP_200_OK)
-        
-        else:
-            return Response({"message":"email has no account"},status=status.HTTP_401_UNAUTHORIZED)
-    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-@api_view(['POST'])
-@permission_classes([IsAuthenticated]) 
-def logout(request):
-    if request.method=='POST':
-        refresh=request.data.get("refresh")
-
-        token=RefreshToken(refresh)
-        token.blacklist()
-        return Response({"message":"logout success"},status=status.HTTP_200_OK)
-    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-@api_view(['POST'])
-def register_supplier(request):
-    if request.method=='POST':
-        serializer=SupplierRegisterSerializer(data=request.data)
-
+@api_view(['PATCH','GET'])
+@permission_classes([IsAuthenticated,IsAdminUser])
+def update_manager(request,pk):
+    if request.method=='PATCH':
+        serializer=MangerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message":"Supplier registerd Successfully"},status=status.HTTP_201_CREATED)
+            return Response({"message":"User is now Manger"},status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+   
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-@api_view(['GET'])
-def view_supplier(request):
-    if request.method=='GET':
-        supplier=Supplier.objects.all()
-        serializer=Supplierserializer(supplier,many=True)
-        
-        return Response(serializer.data,status=status.HTTP_200_OK)
-        
-    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-@api_view(['POST'])
-def add_catogery(request):
-    if request.method=='POST':
-        serializer=CatogerySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message":"added Success"},status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-@api_view(['POST'])
-def add_unit(request):
-    if request.method=='POST':
-        serializer=UnitSeralizer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message":"Unit Added"},status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
 
 
-@api_view(['POST'])
-def add_product(request):
-    if request.method=='POST':
-        serializer=ProductSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message":"product add successfully"},status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.data,status=status.HTTP_400_BAD_REQUEST)
-    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-@api_view(['POST'])
-def register_purchase(request):
-    if request.method=='POST':
-        serializer=PurschaseSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message":"Purchased Succesfully"})
-        else:
-            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
-    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+
 
 
                      

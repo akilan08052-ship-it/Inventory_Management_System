@@ -8,6 +8,7 @@ admin.site.register(Catogery)
 admin.site.register(Unit)
 admin.site.register(Product)
 admin.site.register(Purchase)
+admin.site.register(Manager)
 
 
 

@@ -45,6 +45,11 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     objects=CustomUserManager()
     USERNAME_FIELD="email"
     REQUIRED_FIELDS=[]
+class Manager(models.Model):
+    manager=models.OneToOneField(CustomUser,on_delete=models.PROTECT)
+    udai_no=models.IntegerField()
+    Address=models.CharField(max_length=300)
+    joined_date=models.DateField(auto_now_add=True)
 
 class Supplier(models.Model):
     user=models.OneToOneField(CustomUser,on_delete=models.PROTECT)
@@ -56,7 +61,7 @@ class Supplier(models.Model):
     cerated_at=models.DateField(auto_now_add=True)
     
     def supplier_name(self):
-        return self.user.first_name +" " +self.user.last_name
+        return self.user.user_name()
     def email(self):
         return self.user.email
     def __str__(self):
