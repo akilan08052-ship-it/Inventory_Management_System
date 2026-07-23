@@ -30,7 +30,8 @@ def login(request):
                 
                 "email":email,
                 "access_token":str(refresh.access_token),
-                "refresh_token":str(refresh)
+                "refresh_token":str(refresh),
+                "role":user.role
 
             }
             return Response(message,status=status.HTTP_200_OK)
@@ -50,7 +51,28 @@ def register_user(request):
         else:
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
+@api_view(['GET'])
+def user_list(request):
+    if request.method=='GET':
+        user=CustomUser.objects.all()
+        serializer=UserSerializer(user,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser,IsAuthenticated])
+def update_user(request,pk):
+    if request.method=='PATCH':
+        user=CustomUser.objects.get(pk=pk)
+        print(user)
+        serializer=UserSerializer(user,data=request.data,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"user updated "},status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+        
 @api_view(['POST','GET'])
 @permission_classes([IsAdminUser,IsAuthenticated])
 def add_supplier(request):
@@ -123,6 +145,7 @@ def register_manager(request):
         user=CustomUser.objects.filter(is_staff=True).values("id","email")
         return Response(user,status=status.HTTP_200_OK)
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+@api_view()
 
 @api_view(['PATCH','GET'])
 @permission_classes([IsAuthenticated,IsAdminUser])
@@ -131,11 +154,34 @@ def update_manager(request,pk):
         serializer=MangerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message":"User is now Manger"},status=status.HTTP_201_CREATED)
+            return Response({"message":"Details updated successfully"},status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
    
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser,IsAuthenticated])
+def delete_manager(request,pk):
+    if request.method=='DELETE':
+        try:
+            manager=Manager.objects.get(pk=pk)
+        except Manager.DoesNotExist:
+            return Response({"message":"manager not found with given details"},status=status.HTTP_404_NOT_FOUND)
+        manager.delete()
+        return Response({"message":"deleted Successfully"},status=status.HTTP_204_NO_CONTENT)
+    
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        
+    
+  
+
+
+
+
+
+        
+
+
 
     
 
